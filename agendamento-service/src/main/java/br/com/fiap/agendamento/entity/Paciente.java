@@ -9,28 +9,32 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Entity
-@Table(name = "paciente")
+
 @Builder
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Paciente {
+@Entity
+@Table(name = "paciente",
+        uniqueConstraints = @UniqueConstraint(name = "uk_paciente_cpf", columnNames = "cpf"))
+public class Paciente extends EntidadeAuditavel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String nome;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 13)
     private String telefone;
+
+    @Column(name = "data_nascimento")
+    private LocalDate dataNascimento;
 
     private String email;
 
-    @Column(nullable = false, unique = true)
+    @Column(length = 11)
     private String cpf;
 
-    private LocalDate dataNascimento;
 }

@@ -1,39 +1,85 @@
 package br.com.fiap.agendamento.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.OffsetDateTime;
 
-@Entity
-@Table(name = "agendamento")
-@Builder
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class Agendamento {
+@Entity
+@Table(name = "agendamento",
+        indexes = {
+                @Index(name = "idx_agendamento_paciente_data", columnList = "paciente_id, data_hora"),
+                @Index(name = "idx_agendamento_profissional_data", columnList = "profissional_id, data_hora")
+        })
+public class Agendamento extends EntidadeAuditavel {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @NotNull
-    @Column(name = "paciente_id", nullable = false)
-    private UUID pacienteId;
+    @Version
+    @Column(nullable = false)
+    private Long versao;
 
-    @NotNull
-    @Column(name = "profissional_id", nullable = false)
-    private UUID profissionalId;
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "paciente_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_agendamento_paciente"))
+    private Paciente paciente;
 
-    @NotNull
-    @Column(name = "pagamento_id", nullable = false)
-    private UUID pagamentoId;
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "profissional_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_agendamento_profissional"))
+    private Profissional profissional;
 
-    @NotNull
-    @Column(name = "date_time", nullable = false)
-    private LocalDateTime dateTime;
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "procedimento_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_agendamento_procedimento"))
+    private Procedimento procedimento;
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "convenio_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_agendamento_convenio"))
+    private Convenio convenio;
+
+    @Column(name = "data_hora", nullable = false)
+    private OffsetDateTime dataHora;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private StatusAgendamento status;
+
+    @Column(length = 500)
+    private String observacao;
+
+    protected Agendamento() {
+    }
+
+    public Agendamento(Paciente paciente, Profissional profissional, Procedimento procedimento,
+                       Convenio convenio, OffsetDateTime dataHora, String observacao) {
+        this.paciente = paciente;
+        this.profissional = profissional;
+        this.procedimento = procedimento;
+        this.convenio = convenio;
+        this.dataHora = dataHora;
+        this.observacao = observacao;
+        this.status = StatusAgendamento.AGENDADO;
+    }
+
+    public void alterar(OffsetDateTime novaDataHora, StatusAgendamento novoStatus, String novaObservacao) {
+        if (novaDataHora != null) {
+            this.dataHora = novaDataHora;
+        }
+        if (novoStatus != null) {
+            this.status = novoStatus;
+        }
+        if (novaObservacao != null) {
+            this.observacao = novaObservacao;
+        }
+    }
+
+    public void cancelar() {
+        this.status = StatusAgendamento.CANCELADO;
+    }
+
 }
