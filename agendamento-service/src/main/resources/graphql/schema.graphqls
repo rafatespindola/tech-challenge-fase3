@@ -1,0 +1,129 @@
+# Escalar de graphql-java-extended-scalars (ExtendedScalars.DateTime).
+# Mapeia para OffsetDateTime, o mesmo tipo usado nas entidades.
+scalar DateTime
+
+# --------------------------------------------------------------------------
+# Tipos de leitura.
+#
+# Paciente, Profissional, Procedimento e Convenio sao alimentados por insercao
+# direta no banco: aqui eles so aparecem como leitura, aninhados no agendamento.
+# --------------------------------------------------------------------------
+
+type Paciente {
+    id: ID!
+    nome: String!
+    telefone: String!
+    email: String
+    cpf: String
+}
+
+type Profissional {
+    id: ID!
+    nome: String!
+    cargo: Cargo!
+    especialidade: String
+    registroConselho: String
+}
+
+type Procedimento {
+    id: ID!
+    nome: String!
+    duracaoMinutos: Int!
+}
+
+type Convenio {
+    id: ID!
+    nome: String!
+}
+
+type Agendamento {
+    id: ID!
+    paciente: Paciente!
+    profissional: Profissional!
+    procedimento: Procedimento!
+    convenio: Convenio!
+    dataHora: DateTime!
+    status: StatusAgendamento!
+    observacao: String
+    criadoEm: DateTime!
+    atualizadoEm: DateTime!
+    "Controle de concorrencia otimista. Incrementa a cada atualizacao."
+    versao: Int!
+}
+
+type PaginaAgendamento {
+    conteudo: [Agendamento!]!
+    pagina: Int!
+    tamanho: Int!
+    totalElementos: Int!
+    totalPaginas: Int!
+}
+
+enum StatusAgendamento {
+    AGENDADO
+    REALIZADO
+    CANCELADO
+}
+
+enum Cargo {
+    MEDICO
+    ENFERMEIRO
+}
+
+# --------------------------------------------------------------------------
+# Entradas
+# --------------------------------------------------------------------------
+
+input NovoAgendamentoInput {
+    pacienteId: ID!
+    profissionalId: ID!
+    procedimentoId: ID!
+    convenioId: ID!
+    dataHora: DateTime!
+    observacao: String
+}
+
+"Campos nulos sao ignorados: so o que vier preenchido e alterado."
+input AtualizarAgendamentoInput {
+    dataHora: DateTime
+    status: StatusAgendamento
+    observacao: String
+}
+
+"Todos os campos sao opcionais e se combinam com AND."
+input FiltroAgendamentoInput {
+    pacienteId: ID
+    profissionalId: ID
+    status: StatusAgendamento
+    "Inicio do intervalo de dataHora, inclusivo."
+    de: DateTime
+    "Fim do intervalo de dataHora, inclusivo."
+    ate: DateTime
+}
+
+# --------------------------------------------------------------------------
+# Operacoes
+# --------------------------------------------------------------------------
+
+type Query {
+    "Retorna null quando o id nao existe."
+    agendamento(id: ID!): Agendamento
+
+    agendamentos(
+        filtro: FiltroAgendamentoInput,
+        pagina: Int = 0,
+        tamanho: Int = 20
+    ): PaginaAgendamento!
+}
+
+type Mutation {
+    criarAgendamento(input: NovoAgendamentoInput!): Agendamento!
+
+    atualizarAgendamento(id: ID!, input: AtualizarAgendamentoInput!): Agendamento!
+
+    "Marca como CANCELADO, preservando o registro."
+    cancelarAgendamento(id: ID!): Agendamento!
+
+    "Exclusao fisica. Retorna false se o id nao existia."
+    removerAgendamento(id: ID!): Boolean!
+}

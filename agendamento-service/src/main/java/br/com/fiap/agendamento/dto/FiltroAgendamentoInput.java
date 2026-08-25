@@ -1,0 +1,18 @@
+package br.com.fiap.agendamento.dto;
+
+import br.com.fiap.agendamento.entity.StatusAgendamento;
+
+import java.time.OffsetDateTime;
+
+public record FiltroAgendamentoInput(
+        Long pacienteId,
+        Long profissionalId,
+        StatusAgendamento status,
+        OffsetDateTime de,
+        OffsetDateTime ate
+) {
+    /** Filtro vazio, usado quando o cliente omite o argumento. */
+    public static FiltroAgendamentoInput vazio() {
+        return new FiltroAgendamentoInput(null, null, null, null, null);
+    }
+}
