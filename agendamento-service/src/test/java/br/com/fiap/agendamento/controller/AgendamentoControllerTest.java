@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureG
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -25,8 +26,14 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Toda operacao de agendamento exige autenticacao; o @WithMockUser satisfaz o
+ * @PreAuthorize dos controllers sem passar por login. O caminho do token de
+ * verdade e coberto em {@link AutenticacaoControllerTest}.
+ */
 @SpringBootTest
 @AutoConfigureGraphQlTester
+@WithMockUser
 class AgendamentoControllerTest {
 
     private static final String MUTATION_CRIAR = """

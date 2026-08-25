@@ -10,11 +10,18 @@ import jakarta.validation.Valid;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.Optional;
 
+/**
+ * O @PreAuthorize na classe vale para todos os metodos: nenhuma operacao de
+ * agendamento responde sem token. A checagem fica aqui, e nao na cadeia HTTP,
+ * porque no GraphQL todos os campos chegam pela mesma URL.
+ */
 @Controller
+@PreAuthorize("isAuthenticated()")
 public class AgendamentoController {
 
     private final AgendamentoService service;

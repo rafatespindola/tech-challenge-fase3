@@ -70,9 +70,30 @@ enum Cargo {
     ENFERMEIRO
 }
 
+"Papel do usuario autenticado. Deriva do vinculo: paciente ou cargo do profissional."
+enum Role {
+    PACIENTE
+    MEDICO
+    ENFERMEIRO
+}
+
+type AutenticacaoPayload {
+    "JWT assinado. Enviar nas demais operacoes como: Authorization: Bearer <token>."
+    token: String!
+    expiraEm: DateTime!
+    "Nome da pessoa por tras do usuario, para o cliente nao precisar abrir o token."
+    nome: String!
+    role: Role!
+}
+
 # --------------------------------------------------------------------------
 # Entradas
 # --------------------------------------------------------------------------
+
+input LoginInput {
+    login: String!
+    senha: String!
+}
 
 input NovoAgendamentoInput {
     pacienteId: ID!
@@ -103,6 +124,9 @@ input FiltroAgendamentoInput {
 
 # --------------------------------------------------------------------------
 # Operacoes
+#
+# Todas exigem um token valido no header Authorization, exceto a mutation login.
+# Sem token (ou com token vencido) a resposta vem com errorType UNAUTHORIZED.
 # --------------------------------------------------------------------------
 
 type Query {
@@ -117,6 +141,9 @@ type Query {
 }
 
 type Mutation {
+    "Unica operacao publica. Devolve o token usado por todas as outras."
+    login(input: LoginInput!): AutenticacaoPayload!
+
     criarAgendamento(input: NovoAgendamentoInput!): Agendamento!
 
     atualizarAgendamento(id: ID!, input: AtualizarAgendamentoInput!): Agendamento!
