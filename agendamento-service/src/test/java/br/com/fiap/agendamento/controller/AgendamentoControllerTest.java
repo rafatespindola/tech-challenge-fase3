@@ -5,11 +5,13 @@ import br.com.fiap.agendamento.entity.Convenio;
 import br.com.fiap.agendamento.entity.Paciente;
 import br.com.fiap.agendamento.entity.Procedimento;
 import br.com.fiap.agendamento.entity.Profissional;
+import br.com.fiap.agendamento.entity.Role;
 import br.com.fiap.agendamento.repository.AgendamentoRepository;
 import br.com.fiap.agendamento.repository.ConvenioRepository;
 import br.com.fiap.agendamento.repository.PacienteRepository;
 import br.com.fiap.agendamento.repository.ProcedimentoRepository;
 import br.com.fiap.agendamento.repository.ProfissionalRepository;
+import br.com.fiap.agendamento.security.ComoUsuario;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @AutoConfigureGraphQlTester
+@ComoUsuario(role = Role.MEDICO, login = "medico", profissionalId = 1)
 class AgendamentoControllerTest {
 
     private static final String MUTATION_CRIAR = """

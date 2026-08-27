@@ -50,17 +50,31 @@ public class AgendamentoService {
         this.convenioRepository = convenioRepository;
     }
 
+    /**
+     * Agendamento de outro paciente sai como vazio, igual a um id inexistente.
+     * Responder "sem permissao" aqui transformaria o campo em oraculo de
+     * existencia: bastaria varrer ids e olhar o tipo do erro para descobrir
+     * quais agendamentos existem. A negacao por role continua explicita nas
+     * mutations.
+     */
     @Transactional(readOnly = true)
-    public Optional<Agendamento> buscarPorId(Long id) {
-        return agendamentoRepository.findById(id);
+    public Optional<Agendamento> buscarPorId(Long id, EscopoConsulta escopo) {
+        return agendamentoRepository.findById(id)
+                .filter(agendamento -> !escopo.restrito()
+                        || agendamento.getPaciente().getId().equals(escopo.pacienteId()));
     }
 
     @Transactional(readOnly = true)
-    public Page<Agendamento> buscar(FiltroAgendamentoInput filtro, int pagina, int tamanho) {
+    public Page<Agendamento> buscar(FiltroAgendamentoInput filtro, int pagina, int tamanho,
+                                    EscopoConsulta escopo) {
+        FiltroAgendamentoInput filtroEfetivo = escopo.restrito()
+                ? filtro.comPacienteId(escopo.pacienteId())
+                : filtro;
+
         int tamanhoEfetivo = Math.clamp(tamanho, 1, TAMANHO_MAXIMO_PAGINA);
         PageRequest paginacao = PageRequest.of(
                 Math.max(pagina, 0), tamanhoEfetivo, Sort.by("dataHora").ascending());
-        return agendamentoRepository.findAll(AgendamentoSpecs.de(filtro), paginacao);
+        return agendamentoRepository.findAll(AgendamentoSpecs.de(filtroEfetivo), paginacao);
     }
 
     @Transactional

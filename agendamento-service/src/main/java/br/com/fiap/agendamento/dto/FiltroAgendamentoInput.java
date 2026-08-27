@@ -15,4 +15,12 @@ public record FiltroAgendamentoInput(
     public static FiltroAgendamentoInput vazio() {
         return new FiltroAgendamentoInput(null, null, null, null, null);
     }
+
+    /**
+     * Copia com o paciente trocado. Sobrescreve o que o cliente mandou, e nao
+     * mescla: e assim que um PACIENTE pedindo a agenda de outro recebe a propria.
+     */
+    public FiltroAgendamentoInput comPacienteId(Long pacienteId) {
+        return new FiltroAgendamentoInput(pacienteId, profissionalId, status, de, ate);
+    }
 }
