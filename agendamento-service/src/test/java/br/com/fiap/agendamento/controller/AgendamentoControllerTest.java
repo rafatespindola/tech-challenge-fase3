@@ -12,6 +12,7 @@ import br.com.fiap.agendamento.repository.PacienteRepository;
 import br.com.fiap.agendamento.repository.ProcedimentoRepository;
 import br.com.fiap.agendamento.repository.ProfissionalRepository;
 import br.com.fiap.agendamento.security.ComoUsuario;
+import br.com.fiap.agendamento.security.UsuarioAutenticado;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +20,27 @@ import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureG
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Comportamento das operacoes, nao das permissoes - a matriz de quem pode o que
+ * esta em AgendamentoControllerAutorizacaoTest.
+ *
+ * A classe roda como MEDICO porque atualizar, cancelar e remover sao dele. Criar
+ * e do ENFERMEIRO, entao os helpers de criacao trocam o contexto por conta
+ * propria: sem isso, quase todo teste aqui pararia no @PreAuthorize do setup em
+ * vez de exercitar o que se propoe.
+ */
 @SpringBootTest
 @AutoConfigureGraphQlTester
 @ComoUsuario(role = Role.MEDICO, login = "medico", profissionalId = 1)
@@ -347,7 +361,29 @@ class AgendamentoControllerTest {
         for (Map.Entry<String, Object> entrada : variaveis.entrySet()) {
             request = request.variable(entrada.getKey(), entrada.getValue());
         }
-        return request.execute();
+        GraphQlTester.Request<?> pronta = request;
+        return comoEnfermeiro(pronta::execute);
+    }
+
+    /**
+     * Executa a acao autenticado como ENFERMEIRO e devolve o contexto anterior.
+     * O restore no finally importa: o tester roda na thread do teste, entao um
+     * contexto vazado aqui mudaria a role das assercoes seguintes.
+     */
+    private <T> T comoEnfermeiro(Supplier<T> acao) {
+        SecurityContext anterior = SecurityContextHolder.getContext();
+        UsuarioAutenticado enfermeiro = UsuarioAutenticado.deToken(
+                2L, "enfermeiro", "Carlos Nogueira", Role.ENFERMEIRO, null, 2L);
+
+        SecurityContext contexto = SecurityContextHolder.createEmptyContext();
+        contexto.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+                enfermeiro, null, enfermeiro.getAuthorities()));
+        SecurityContextHolder.setContext(contexto);
+        try {
+            return acao.get();
+        } finally {
+            SecurityContextHolder.setContext(anterior);
+        }
     }
 
     private GraphQlTester.Response cancelar(String id) {

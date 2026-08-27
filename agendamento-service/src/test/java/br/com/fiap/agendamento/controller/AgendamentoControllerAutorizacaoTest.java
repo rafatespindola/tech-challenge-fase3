@@ -205,14 +205,57 @@ class AgendamentoControllerAutorizacaoTest {
                 .verify();
     }
 
-    /** O enfermeiro entra pela mesma porta do medico: hasAnyRole cobre os dois. */
     @Test
-    @ComoUsuario(role = Role.ENFERMEIRO, login = "enfermeiro", profissionalId = 2)
-    void enfermeiroPodeCancelar() {
+    @ComoUsuario(role = Role.MEDICO, login = "medico", profissionalId = 1)
+    void medicoPodeCancelar() {
         tester.document("mutation($id: ID!) { cancelarAgendamento(id: $id) { id status } }")
                 .variable("id", agendamentoProprioId.toString())
                 .execute()
                 .path("cancelarAgendamento.status").entity(String.class).isEqualTo("CANCELADO");
+    }
+
+    /**
+     * Ser profissional nao basta: cada mutation e de uma role so. Cancelar e do
+     * medico, e o enfermeiro bate no mesmo FORBIDDEN que o paciente.
+     */
+    @Test
+    @ComoUsuario(role = Role.ENFERMEIRO, login = "enfermeiro", profissionalId = 2)
+    void enfermeiroNaoPodeCancelar() {
+        tester.document("mutation($id: ID!) { cancelarAgendamento(id: $id) { id status } }")
+                .variable("id", agendamentoProprioId.toString())
+                .execute()
+                .errors()
+                .expect(erro -> erro.getErrorType() == ErrorType.FORBIDDEN)
+                .verify();
+    }
+
+    /** O lado espelhado: criar e do enfermeiro, e o medico fica de fora. */
+    @Test
+    @ComoUsuario(role = Role.MEDICO, login = "medico", profissionalId = 1)
+    void medicoNaoPodeCriar() {
+        tester.document(MUTATION_CRIAR)
+                .variable("pacienteId", pacienteId.toString())
+                .variable("profissionalId", profissionalId.toString())
+                .variable("procedimentoId", procedimentoId.toString())
+                .variable("convenioId", convenioId.toString())
+                .variable("dataHora", OffsetDateTime.now().plusDays(5).toString())
+                .execute()
+                .errors()
+                .expect(erro -> erro.getErrorType() == ErrorType.FORBIDDEN)
+                .verify();
+    }
+
+    @Test
+    @ComoUsuario(role = Role.ENFERMEIRO, login = "enfermeiro", profissionalId = 2)
+    void enfermeiroPodeCriar() {
+        tester.document(MUTATION_CRIAR)
+                .variable("pacienteId", pacienteId.toString())
+                .variable("profissionalId", profissionalId.toString())
+                .variable("procedimentoId", procedimentoId.toString())
+                .variable("convenioId", convenioId.toString())
+                .variable("dataHora", OffsetDateTime.now().plusDays(5).toString())
+                .execute()
+                .path("criarAgendamento.id").hasValue();
     }
 
     // ------------------------------------------------------------- apoio

@@ -53,34 +53,34 @@ public class AgendamentoController {
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('MEDICO','ENFERMEIRO')")
+    @PreAuthorize("hasRole('ENFERMEIRO')")
     public Agendamento criarAgendamento(@Argument @Valid NovoAgendamentoInput input) {
         return service.criar(input);
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('MEDICO','ENFERMEIRO')")
+    @PreAuthorize("hasRole('MEDICO')")
     public Agendamento atualizarAgendamento(@Argument Long id,
                                             @Argument @Valid AtualizarAgendamentoInput input) {
         return service.atualizar(id, input);
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('MEDICO','ENFERMEIRO')")
+    @PreAuthorize("hasRole('MEDICO')")
     public Agendamento cancelarAgendamento(@Argument Long id) {
         return service.cancelar(id);
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('MEDICO','ENFERMEIRO')")
+    @PreAuthorize("hasRole('MEDICO')")
     public boolean removerAgendamento(@Argument Long id) {
         return service.remover(id);
     }
 
-    /**
+    /**A
      * Decide pela role, nunca por "tem pacienteId": no dia em que um
      * profissional tambem tiver cadastro de paciente, a segunda leitura
-     * silenciosamente restringiria a agenda dele.
+     * restringiria a agenda dele.
      */
     private EscopoConsulta escopoDe(UsuarioAutenticado usuario) {
         if (usuario == null) {
