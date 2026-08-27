@@ -11,10 +11,10 @@ VALUES (1, 'Dra. Helena Prado', 'MEDICO',     'Cardiologia', 'CRM-PA 12345',   N
 
 -- Senha de todos: 123456
 INSERT IGNORE INTO usuario (id, login, senha, role, paciente_id, profissional_id, criado_em, atualizado_em)
-VALUES (1, 'medico',     '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'MEDICO',     NULL, 1,    NOW(6), NOW(6)),
-       (2, 'enfermeiro', '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'ENFERMEIRO', NULL, 2,    NOW(6), NOW(6)),
-       (3, 'paciente',   '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'PACIENTE',   1,    NULL, NOW(6), NOW(6)),
-       (4, 'paciente2',  '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'PACIENTE',   2,    NULL, NOW(6), NOW(6));
+VALUES (1, 'medico',     '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'MEDICO',     NULL,    1,    NOW(6), NOW(6)),
+       (2, 'enfermeiro', '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'ENFERMEIRO', NULL,    2,    NOW(6), NOW(6)),
+       (3, 'paciente',   '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'PACIENTE',   1,       NULL, NOW(6), NOW(6)),
+       (4, 'paciente2',  '$2b$10$x/nbAA6OAda6c74Ux7JcReHvDFt22ZzQH5ehPaMiiWcJeTktARADC', 'PACIENTE',   2,       NULL, NOW(6), NOW(6));
 
 INSERT IGNORE INTO procedimento (id, nome, duracao_minutos)
 VALUES (1, 'Consulta cardiologica', 30),
