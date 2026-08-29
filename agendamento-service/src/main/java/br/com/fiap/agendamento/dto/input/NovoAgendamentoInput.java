@@ -1,4 +1,4 @@
-package br.com.fiap.agendamento.dto;
+package br.com.fiap.agendamento.dto.input;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;

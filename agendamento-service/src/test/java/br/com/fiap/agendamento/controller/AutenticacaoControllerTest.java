@@ -10,7 +10,9 @@ import br.com.fiap.agendamento.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +39,10 @@ class AutenticacaoControllerTest {
     private static final String SENHA = "123456";
     private static final String QUERY_LISTA =
             "{\"query\":\"{ agendamentos { totalElementos } }\"}";
+
+    // Sem broker no ambiente de teste. O mock deixa o PublishService rodar de
+    // verdade (routing key incluida) sem abrir conexao AMQP.
+    @MockBean RabbitTemplate rabbitTemplate;
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;

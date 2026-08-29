@@ -1,14 +1,15 @@
 package br.com.fiap.agendamento.controller;
 
-import br.com.fiap.agendamento.dto.AtualizarAgendamentoInput;
-import br.com.fiap.agendamento.dto.FiltroAgendamentoInput;
-import br.com.fiap.agendamento.dto.NovoAgendamentoInput;
-import br.com.fiap.agendamento.dto.PaginaAgendamento;
+import br.com.fiap.agendamento.dto.input.AtualizarAgendamentoInput;
+import br.com.fiap.agendamento.dto.input.FiltroAgendamentoInput;
+import br.com.fiap.agendamento.dto.input.NovoAgendamentoInput;
+import br.com.fiap.agendamento.dto.output.PaginaAgendamento;
 import br.com.fiap.agendamento.entity.Agendamento;
 import br.com.fiap.agendamento.entity.Role;
 import br.com.fiap.agendamento.security.UsuarioAutenticado;
 import br.com.fiap.agendamento.service.AgendamentoService;
 import br.com.fiap.agendamento.service.EscopoConsulta;
+import br.com.fiap.agendamento.service.PublishService;
 import jakarta.validation.Valid;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -30,9 +31,11 @@ import java.util.Optional;
 public class AgendamentoController {
 
     private final AgendamentoService service;
+    private final PublishService publishService;
 
-    public AgendamentoController(AgendamentoService service) {
+    public AgendamentoController(AgendamentoService service, PublishService publishService) {
         this.service = service;
+        this.publishService = publishService;
     }
 
     @QueryMapping
@@ -55,29 +58,41 @@ public class AgendamentoController {
     @MutationMapping
     @PreAuthorize("hasRole('ENFERMEIRO')")
     public Agendamento criarAgendamento(@Argument @Valid NovoAgendamentoInput input) {
-        return service.criar(input);
+        Agendamento agendamentoCriado = service.criar(input);
+        publishService.publicarAgendamentoCriado(agendamentoCriado);
+        return agendamentoCriado;
     }
 
     @MutationMapping
     @PreAuthorize("hasRole('MEDICO')")
     public Agendamento atualizarAgendamento(@Argument Long id,
                                             @Argument @Valid AtualizarAgendamentoInput input) {
-        return service.atualizar(id, input);
+        Agendamento agendamentoAtualizado = service.atualizar(id, input);
+        publishService.publicarAgendamentoAtualizado(agendamentoAtualizado);
+        return agendamentoAtualizado;
     }
 
     @MutationMapping
     @PreAuthorize("hasRole('MEDICO')")
     public Agendamento cancelarAgendamento(@Argument Long id) {
-        return service.cancelar(id);
+        // Cancelar e uma troca de status, entao sai como AGENDAMENTO_EDITADO.
+        Agendamento agendamentoCancelado = service.cancelar(id);
+        publishService.publicarAgendamentoAtualizado(agendamentoCancelado);
+        return agendamentoCancelado;
     }
 
     @MutationMapping
     @PreAuthorize("hasRole('MEDICO')")
     public boolean removerAgendamento(@Argument Long id) {
-        return service.remover(id);
+        return service.remover(id)
+                .map(agendamentoRemovido -> {
+                    publishService.publicarAgendamentoExcluido(agendamentoRemovido);
+                    return true;
+                })
+                .orElse(false);
     }
 
-    /**A
+    /**
      * Decide pela role, nunca por "tem pacienteId": no dia em que um
      * profissional tambem tiver cadastro de paciente, a segunda leitura
      * restringiria a agenda dele.

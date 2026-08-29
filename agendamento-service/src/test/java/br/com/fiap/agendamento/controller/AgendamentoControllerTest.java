@@ -15,7 +15,9 @@ import br.com.fiap.agendamento.security.ComoUsuario;
 import br.com.fiap.agendamento.security.UsuarioAutenticado;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.graphql.execution.ErrorType;
@@ -69,6 +71,10 @@ class AgendamentoControllerTest {
               }
             }
             """;
+
+    // Sem broker no ambiente de teste. O mock deixa o PublishService rodar de
+    // verdade (routing key incluida) sem abrir conexao AMQP.
+    @MockBean RabbitTemplate rabbitTemplate;
 
     @Autowired GraphQlTester tester;
 
