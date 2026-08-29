@@ -1,4 +1,4 @@
-package br.com.fiap.agendamento.dto;
+package br.com.fiap.agendamento.dto.output;
 
 import br.com.fiap.agendamento.entity.Role;
 

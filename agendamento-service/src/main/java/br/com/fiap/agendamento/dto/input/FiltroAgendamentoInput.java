@@ -1,4 +1,4 @@
-package br.com.fiap.agendamento.dto;
+package br.com.fiap.agendamento.dto.input;
 
 import br.com.fiap.agendamento.entity.StatusAgendamento;
 

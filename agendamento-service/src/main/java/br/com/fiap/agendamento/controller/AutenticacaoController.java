@@ -1,7 +1,7 @@
 package br.com.fiap.agendamento.controller;
 
-import br.com.fiap.agendamento.dto.AutenticacaoResponse;
-import br.com.fiap.agendamento.dto.LoginRequest;
+import br.com.fiap.agendamento.dto.output.AutenticacaoResponse;
+import br.com.fiap.agendamento.dto.input.LoginRequest;
 import br.com.fiap.agendamento.service.AutenticacaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;

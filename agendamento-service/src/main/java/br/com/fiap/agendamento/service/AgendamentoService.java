@@ -1,8 +1,8 @@
 package br.com.fiap.agendamento.service;
 
-import br.com.fiap.agendamento.dto.AtualizarAgendamentoInput;
-import br.com.fiap.agendamento.dto.FiltroAgendamentoInput;
-import br.com.fiap.agendamento.dto.NovoAgendamentoInput;
+import br.com.fiap.agendamento.dto.input.AtualizarAgendamentoInput;
+import br.com.fiap.agendamento.dto.input.FiltroAgendamentoInput;
+import br.com.fiap.agendamento.dto.input.NovoAgendamentoInput;
 import br.com.fiap.agendamento.entity.Agendamento;
 import br.com.fiap.agendamento.entity.Convenio;
 import br.com.fiap.agendamento.entity.Paciente;
@@ -125,13 +125,17 @@ public class AgendamentoService {
         return agendamentoRepository.save(agendamento);
     }
 
+    /**
+     * Devolve o agendamento removido em vez de um boolean: o publisher precisa
+     * do registro para montar o evento, e depois do delete ele nao existe mais.
+     */
     @Transactional
-    public boolean remover(Long id) {
-        if (!agendamentoRepository.existsById(id)) {
-            return false;
-        }
-        agendamentoRepository.deleteById(id);
-        return true;
+    public Optional<Agendamento> remover(Long id) {
+        return agendamentoRepository.findById(id)
+                .map(agendamento -> {
+                    agendamentoRepository.delete(agendamento);
+                    return agendamento;
+                });
     }
 
     private Agendamento carregar(Long id) {

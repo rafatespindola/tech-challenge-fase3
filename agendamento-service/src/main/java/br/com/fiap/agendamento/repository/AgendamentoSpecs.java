@@ -1,6 +1,6 @@
 package br.com.fiap.agendamento.repository;
 
-import br.com.fiap.agendamento.dto.FiltroAgendamentoInput;
+import br.com.fiap.agendamento.dto.input.FiltroAgendamentoInput;
 import br.com.fiap.agendamento.entity.Agendamento;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
