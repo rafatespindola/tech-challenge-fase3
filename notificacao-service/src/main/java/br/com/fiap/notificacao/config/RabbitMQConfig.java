@@ -1,11 +1,13 @@
 package br.com.fiap.notificacao.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonUtils;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -55,9 +57,17 @@ public class RabbitMQConfig {
         return new Declarables(bindings);
     }
 
+    /**
+     * O ObjectMapper e o proprio do Spring AMQP (enhancedObjectMapper), nao o do
+     * Boot: spring.jackson.* nao alcanca este converter. So o fuso muda -
+     * ADJUST_DATES_TO_CONTEXT_TIME_ZONE vem ligado e reescreveria o
+     * 2026-09-02T14:30-03:00 publicado como 17:30Z. O instante seria o mesmo, mas
+     * quem formatasse o OffsetDateTime direto anunciaria a hora errada.
+     */
     @Bean
     public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+        return new Jackson2JsonMessageConverter(JacksonUtils.enhancedObjectMapper()
+                .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE));
     }
 
 }
