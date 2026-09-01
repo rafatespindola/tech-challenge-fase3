@@ -10,7 +10,6 @@ import br.com.fiap.historico.repository.HistoricoRepository;
 import br.com.fiap.historico.repository.HistoricoSpecs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -49,16 +48,17 @@ public class HistoricoService {
         HistoricoAgendamento historico = new HistoricoAgendamento(
                 messageId, mensagem.agendamentoEvento(), mensagem.agendamento());
 
-        try {
-            historicoRepository.save(historico);
-        } catch (DataIntegrityViolationException excecao) {
-            // Duas entregas concorrentes passam juntas pelo exists acima; quem
-            // perde a corrida bate no unique de message_id. Nada a fazer: a
-            // linha ja existe, que e o resultado desejado. Relancar so faria a
-            // mensagem voltar para a fila e repetir o mesmo choque.
-            log.warn("Mensagem {} gravada em paralelo, ignorando duplicata", messageId);
-            return;
-        }
+        // Sem try/catch em volta do save. Engolir DataIntegrityViolationException
+        // aqui pegaria qualquer violacao - inclusive um NOT NULL de mensagem
+        // malformada - e a registraria no log como duplicata, escondendo erro de
+        // dados atras de uma mensagem tranquilizadora. E nem evitava a reentrega
+        // que pretendia evitar: a excecao ja marcou a transacao como rollback-only,
+        // entao o commit falha de todo jeito e a mensagem volta para a fila.
+        //
+        // A corrida de duas entregas concorrentes se resolve sozinha por esse mesmo
+        // caminho: a reentrega passa de novo pelo existsByMessageId acima, agora
+        // com a linha gravada, e para no return de cima.
+        historicoRepository.save(historico);
 
         log.info("Evento {} do agendamento {} registrado no historico (mensagem {})",
                 mensagem.agendamentoEvento(), mensagem.agendamento().id(), messageId);
