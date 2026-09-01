@@ -19,6 +19,28 @@ services:
       retries: 10
       start_period: 30s
 
+  mysql-historico:
+    image: mysql:8.4
+    container_name: mysql-historico
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: historico
+      MYSQL_USER: historico
+      MYSQL_PASSWORD: historico
+    ports:
+      # 3306 ja e do mysql-agendamento. Base separada de proposito: o historico
+      # e de outro servico e sobrevive ao create-drop do agendamento-service.
+      - "3307:3306"
+    volumes:
+      - mysql-historico-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
@@ -42,4 +64,5 @@ services:
 
 volumes:
   mysql-agendamento-data:
+  mysql-historico-data:
   rabbitmq-data:
